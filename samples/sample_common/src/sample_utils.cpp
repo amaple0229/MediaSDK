@@ -37,7 +37,7 @@ or https://software.intel.com/en-us/media-client-solutions-support.
 
 msdk_tick CTimer::frequency = 0;
 msdk_tick CTimeStatisticsReal::frequency = 0;
-
+mfxF64 totalWriteTime = 0;
 mfxStatus CopyBitstream2(mfxBitstream *dest, mfxBitstream *src)
 {
     if (!dest || !src)
@@ -486,8 +486,11 @@ mfxStatus CSmplBitstreamWriter::WriteNextFrame(mfxBitstream *pMfxBitstream, bool
     MSDK_CHECK_POINTER(pMfxBitstream, MFX_ERR_NULL_PTR);
 
     mfxU32 nBytesWritten = 0;
-
+	//CTimer t;
+	//t.Start();
     nBytesWritten = (mfxU32)fwrite(pMfxBitstream->Data + pMfxBitstream->DataOffset, 1, pMfxBitstream->DataLength, m_fSource);
+	//totalWriteTime += t.GetTime();
+	//printf("totalWriteTime time : %f\n", totalWriteTime);
     MSDK_CHECK_NOT_EQUAL(nBytesWritten, pMfxBitstream->DataLength, MFX_ERR_UNDEFINED_BEHAVIOR);
 
     // mark that we don't need bit stream data any more
@@ -1322,6 +1325,7 @@ mfxStatus InitMfxBitstream(mfxBitstream* pBitstream, mfxU32 nSize)
 mfxStatus ExtendMfxBitstream(mfxBitstream* pBitstream, mfxU32 nSize)
 {
     MSDK_CHECK_POINTER(pBitstream, MFX_ERR_NULL_PTR);
+	//printf("nSize:%d pBitstream->MaxLength:%d\n", nSize, pBitstream->MaxLength);
 
     MSDK_CHECK_ERROR(nSize <= pBitstream->MaxLength, true, MFX_ERR_UNSUPPORTED);
 
@@ -2180,8 +2184,10 @@ mfxStatus StrFormatToCodecFormatFourCC(msdk_char* strInput, mfxU32 &codecFormat)
         {
             codecFormat = MFX_CODEC_RGB4;
         }
-        else
-            sts = MFX_ERR_UNSUPPORTED;
+		else
+		{
+			sts = MFX_ERR_UNSUPPORTED;
+		}
     }
 
     return sts;

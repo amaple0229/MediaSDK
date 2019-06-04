@@ -1466,6 +1466,9 @@ int main(int argc, char *argv[])
         pPipeline->SetNumView(Params.numViews);
     }
 
+
+	CTimer t;
+	t.Start();
     sts = pPipeline->Init(&Params);
     MSDK_CHECK_STATUS(sts, "pPipeline->Init failed");
 
@@ -1500,10 +1503,11 @@ int main(int argc, char *argv[])
         }
     }
 
+	printf("encoding time2 : %f\n", t.GetTime());
+
     pPipeline->CaptureStopV4L2Pipeline();
 
     pPipeline->Close();
-
     msdk_printf(MSDK_STRING("\nProcessing finished\n"));
 
     return 0;

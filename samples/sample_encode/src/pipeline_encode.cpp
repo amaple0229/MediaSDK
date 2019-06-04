@@ -129,7 +129,7 @@ mfxStatus CEncTaskPool::Init(MFXVideoSession* pmfxSession, CSmplBitstreamWriter*
 
 mfxStatus CEncTaskPool::SynchronizeFirstTask()
 {
-    m_statOverall.StartTimeMeasurement();
+    //m_statOverall.StartTimeMeasurement();
     MSDK_CHECK_POINTER(m_pTasks, MFX_ERR_NOT_INITIALIZED);
     MSDK_CHECK_POINTER(m_pmfxSession, MFX_ERR_NOT_INITIALIZED);
 
@@ -161,6 +161,7 @@ mfxStatus CEncTaskPool::SynchronizeFirstTask()
             m_statFile.StartTimeMeasurement();
             sts = m_pTasks[m_nTaskBufferStart].WriteBitstream();
             m_statFile.StopTimeMeasurement();
+			//printf("writer bitstream delta time(ms): %f\n", m_statFile.GetDeltaTimeInMiliSeconds());
             MSDK_CHECK_STATUS(sts, "m_pTasks[m_nTaskBufferStart].WriteBitstream failed");
 
             sts = m_pTasks[m_nTaskBufferStart].Reset();
@@ -209,7 +210,7 @@ mfxStatus CEncTaskPool::SynchronizeFirstTask()
     {
         sts = MFX_ERR_NOT_FOUND; // no tasks left in task buffer
     }
-    m_statOverall.StopTimeMeasurement();
+    //m_statOverall.StopTimeMeasurement();
     return bGpuHang ? MFX_ERR_GPU_HANG : sts;
 }
 
@@ -1671,9 +1672,17 @@ void CEncodingPipeline::Close()
     {
         msdk_printf(MSDK_STRING("Frame number: %u\r\n"), m_FileWriters.first->m_nProcessedFramesNum);
 #ifdef TIME_STATS
-        mfxF64 ProcDeltaTime = m_statOverall.GetDeltaTime() - m_statFile.GetDeltaTime() - m_TaskPool.GetFileStatistics().GetDeltaTime();
-        msdk_printf(MSDK_STRING("Encoding fps: %.0f\n"), m_FileWriters.first->m_nProcessedFramesNum / ProcDeltaTime);
+        mfxF64 ProcDeltaTime = m_statOverall.GetTotalTime() - m_statFile.GetTotalTime() - m_statLoad.GetTotalTime();
+        msdk_printf(MSDK_STRING("Encoding fps: %.0f \n"), m_FileWriters.first->m_nProcessedFramesNum / ProcDeltaTime);
 #endif
+		printf("StateOverAll\n");
+		m_statOverall.PrintStatistics();
+		printf("LoadFile\n");
+		m_statLoad.PrintStatistics();
+		printf("StateFile\n");
+		m_statFile.PrintStatistics();
+		//mfxF64 ProcDeltaTime = m_statOverall.GetDeltaTime() - m_statFile.GetDeltaTime() - m_TaskPool.GetFileStatistics().GetDeltaTime();
+		//msdk_printf(MSDK_STRING("Encoding fps: %.0f\n"), m_FileWriters.first->m_nProcessedFramesNum / ProcDeltaTime);
     }
 
     if (m_UserDataUnregSEI.size() > 0)
@@ -1959,7 +1968,7 @@ mfxStatus CEncodingPipeline::GetFreeTask(sTask **ppTask)
 
 mfxStatus CEncodingPipeline::Run()
 {
-    m_statOverall.StartTimeMeasurement();
+	m_statOverall.StartTimeMeasurement();
     MSDK_CHECK_POINTER(m_pmfxENC, MFX_ERR_NOT_INITIALIZED);
 
     mfxStatus sts = MFX_ERR_NONE;
@@ -2051,9 +2060,9 @@ mfxStatus CEncodingPipeline::Run()
 
                 pSurf->Info.FrameId.ViewId = currViewNum;
 
-                m_statFile.StartTimeMeasurement();
+                m_statLoad.StartTimeMeasurement();
                 sts = LoadNextFrame(pSurf);
-                m_statFile.StopTimeMeasurement();
+                m_statLoad.StopTimeMeasurement();
 
                 if ( (MFX_ERR_MORE_DATA == sts) && !m_bTimeOutExceed)
                     continue;
@@ -2128,7 +2137,11 @@ mfxStatus CEncodingPipeline::Run()
             MSDK_CHECK_STATUS(sts, "ENCODE: InitEncFrameParams failed");
 
             // at this point surface for encoder contains either a frame from file or a frame processed by vpp
+
+			//CTimer t1;
+			//t1.Start();
             sts = m_pmfxENC->EncodeFrameAsync(&m_encCtrl, &m_pEncSurfaces[nEncSurfIdx], &pCurrentTask->mfxBS, &pCurrentTask->EncSyncP);
+			//printf("encoding time : %f\n", t1.GetTime());
             m_bInsertIDR = false;
 
             if (m_nMemBuffer)
@@ -2315,7 +2328,7 @@ mfxStatus CEncodingPipeline::Run()
     MSDK_IGNORE_MFX_STS(sts, MFX_ERR_NOT_FOUND);
     // report any errors that occurred in asynchronous part
     MSDK_CHECK_STATUS(sts, "m_TaskPool.SynchronizeFirstTask failed");
-    m_statOverall.StopTimeMeasurement();
+	m_statOverall.StopTimeMeasurement();
     return sts;
 }
 

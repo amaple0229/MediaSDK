@@ -24,6 +24,7 @@
 #if !defined (__GNUC__)
 #pragma warning(disable: 4201)
 #endif
+#define TIME_STATS
 
 #ifdef __cplusplus
 extern "C" {

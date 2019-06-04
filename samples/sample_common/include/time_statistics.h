@@ -100,10 +100,10 @@ public:
 
     inline void TurnOffDumping(){m_bNeedDumping = false; }
 
-    inline void PrintStatistics(const msdk_char* prefix)
+    inline void PrintStatistics()
     {
-        msdk_printf(MSDK_STRING("%s Total:%.3lfms(%lld smpls),Avg %.3lfms,StdDev:%.3lfms,Min:%.3lfms,Max:%.3lfms\n"),
-                prefix,totalTime,numMeasurements,
+        msdk_printf(MSDK_STRING("Total:%.3lfs(%lld smpls), Avg %.3lfms, StdDev:%.3lfms, Min:%.3lfms, Max:%.3lfms\n"),
+                totalTime,numMeasurements,
                 GetAvgTime(false),GetTimeStdDev(false),
                 GetMinTime(false),GetMaxTime(false));
     }
@@ -151,8 +151,8 @@ public:
     {
         totalTime=0;
         totalTimeSquares=0;
-        minTime=1E100;
-        maxTime=-1;
+        minTime=0;
+        maxTime=0;
         numMeasurements=0;
         m_time_deltas.clear();
         TurnOffDumping();

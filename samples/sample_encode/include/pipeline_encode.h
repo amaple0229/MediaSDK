@@ -57,7 +57,7 @@ or https://software.intel.com/en-us/media-client-solutions-support.
 #endif
 
 #define SAFE_FREAD(PTR, SZ, COUNT, FPTR, ERR) { if (FPTR && (fread(PTR, SZ, COUNT, FPTR) != COUNT)){ return ERR; }}
-
+#define TIME_STATS
 msdk_tick time_get_tick(void);
 msdk_tick time_get_frequency(void);
 
@@ -445,7 +445,8 @@ protected:
     mfxEncodeCtrl m_encCtrl;
 
     CTimeStatisticsReal m_statOverall;
-    CTimeStatisticsReal m_statFile;
+    CTimeStatisticsReal m_statLoad;
+	CTimeStatisticsReal m_statFile;
     virtual mfxStatus InitMfxEncParams(sInputParams *pParams);
     virtual mfxStatus InitMfxVppParams(sInputParams *pParams);
 
